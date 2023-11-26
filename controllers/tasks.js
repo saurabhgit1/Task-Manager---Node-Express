@@ -1,6 +1,9 @@
 import Task from "../models/Task.js";
 import asyncWrapper from "../middleware/async.js";
-import { createCustomAPIError } from "../errors/custom-errors.js";
+import {
+  CustomAPIError,
+  createCustomAPIError,
+} from "../errors/custom-errors.js";
 
 const getAllTasks = asyncWrapper(async (req, res) => {
   const tasks = await Task.find({});
@@ -19,9 +22,8 @@ const getTask = asyncWrapper(async (req, res, next) => {
   const task = await Task.findOne({ _id: taskId });
 
   if (!task) {
-
     //method-3
-    return next(createCustomAPIError("No Record Found",404));
+    return next(createCustomAPIError("No Record Found", 404));
     //method-2
     // const error = new Error("No Record Found");
     // error.status = 404;
@@ -33,7 +35,7 @@ const getTask = asyncWrapper(async (req, res, next) => {
   res.status(200).json({ task });
 });
 
-const updateTask = asyncWrapper(async (req, res) => {
+const updateTask = asyncWrapper(async (req, res, next) => {
   const { id: taskId } = req.params;
   const task = await Task.findOneAndUpdate({ _id: taskId }, req.body, {
     new: true,
@@ -41,18 +43,18 @@ const updateTask = asyncWrapper(async (req, res) => {
   });
 
   if (!task) {
-    return res.status(404).json({ msg: "not found to update" });
+    return next(createCustomAPIError("Task not exist with given id", 404));
   }
 
   res.status(200).status(200).json({ task });
 });
 
-const deleteTask = asyncWrapper(async (req, res) => {
+const deleteTask = asyncWrapper(async (req, res, next) => {
   const { id: taskId } = req.params;
   const task = await Task.findOneAndDelete({ _id: taskId });
 
   if (!task) {
-    return res.status(404).json({ msg: "not found doc to delete" });
+    return next(createCustomAPIError("Task Does not Exist", 404));
   }
   res.status(200).json({ task });
 });
